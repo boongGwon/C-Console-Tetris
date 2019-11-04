@@ -26,6 +26,8 @@ int blocks[7][4][4][4] =
     {0,0,1,0,0,1,1,1,0,0,0,0,0,0,0,0}, {0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0}}
 };
 
+
+
 int new_block_flag; // 새 블럭이 필요한가
 int current_block; //현재 블럭 저장
 int next_block; //다음 블럭 저장
@@ -42,6 +44,7 @@ int esc_paused = 0;
 int paused = 0;
 int floop = 0;
 int gameover_flag = 0;
+int new_color_flag = 0;
 
 int main(void)
 {
@@ -55,18 +58,17 @@ int main(void)
         if(game_running == 1)
         {
             system("cls");
-            draw_ui();
             draw_next_block();
             reset_table();
             score = 0;
+            random_color();
+            random_color();
         }
 
         while(game_running == 1)
         {
-            new_block();
-            place_block();
+            draw_ui();
             draw_table();
-            draw_score();
             check_key();
             loop++;
             if (loop >= game_speed) // 초당 약 game_speed 만큼씩 루프 증가 후 블럭 하강
@@ -76,6 +78,7 @@ int main(void)
             }
             Sleep(33);
             check_line();
+            new_block();
             check_gameover();
         }
 

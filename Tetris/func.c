@@ -1,7 +1,9 @@
 #include "tetris.h"
 
-
-
+unsigned short b_color;
+unsigned short b_color_next = RED;
+unsigned short block_color[GAME_Y][GAME_X];
+unsigned short block_color_copy[GAME_Y][GAME_X];
 
 void init(void) // 초기화
 {
@@ -30,13 +32,52 @@ void gotoxy(int x, int y) // 콘솔 XY위치로 이동
 
 void draw_title(void)
 {
+    text_color(BACKGROUND,WHITE);
     system("cls");
 
-    gotoxy(1,3); printf("■■■  ■■■  ■■■  ■■■  ■  ■■■"); // 테트리스 문자 출력
-    gotoxy(1,4); printf("  ■    ■        ■    ■  ■  ■  ■");
-    gotoxy(1,5); printf("  ■    ■■■    ■    ■■    ■  ■■■");
-    gotoxy(1,6); printf("  ■    ■        ■    ■  ■  ■      ■");
-    gotoxy(1,7); printf("  ■    ■■■    ■    ■  ■  ■  ■■■");
+    text_color(BLACK,RED);
+    gotoxy(1,3); printf("▣▣▣"); // T
+    gotoxy(1,4); printf("  ▣");
+    gotoxy(1,5); printf("  ▣");
+    gotoxy(1,6); printf("  ▣");
+    gotoxy(1,7); printf("  ▣");
+
+    text_color(BLACK,ORANGE);
+    gotoxy(5,3); printf("▣▣▣"); // E
+    gotoxy(5,4); printf("▣");
+    gotoxy(5,5); printf("▣▣▣");
+    gotoxy(5,6); printf("▣");
+    gotoxy(5,7); printf("▣▣▣");
+
+    text_color(BLACK,GREEN);
+    gotoxy(9,3); printf("▣▣▣"); // T
+    gotoxy(9,4); printf("  ▣");
+    gotoxy(9,5); printf("  ▣");
+    gotoxy(9,6); printf("  ▣");
+    gotoxy(9,7); printf("  ▣");
+
+    text_color(BLACK,BLUE);
+    gotoxy(13,3); printf("▣▣▣"); // R
+    gotoxy(13,4); printf("▣  ▣");
+    gotoxy(13,5); printf("▣▣");
+    gotoxy(13,6); printf("▣  ▣");
+    gotoxy(13,7); printf("▣  ▣");
+
+    text_color(BLACK,PURPLE);
+    gotoxy(17,3); printf("▣"); // I
+    gotoxy(17,4); printf("▣");
+    gotoxy(17,5); printf("▣");
+    gotoxy(17,6); printf("▣");
+    gotoxy(17,7); printf("▣");
+
+    text_color(BLACK,RED);
+    gotoxy(19,3); printf("▣▣▣"); // S
+    gotoxy(19,4); printf("▣");
+    gotoxy(19,5); printf("▣▣▣");
+    gotoxy(19,6); printf("    ▣");
+    gotoxy(19,7); printf("▣▣▣");
+
+    text_color(BLACK,WHITE);
     gotoxy(8,11); printf("Move:  W A S D");
     gotoxy(8,12); printf("Drop:  SpaceBar");
     gotoxy(8,13); printf("Pause: P");
@@ -54,6 +95,7 @@ void reset_table(void) // 게임판 초기화
         {
             game_table[i][j] = EMPTY;
             game_table_copy[i][j] = 10;
+            block_color[i][j] = BACKGROUND;
         }
     }
 
@@ -61,11 +103,15 @@ void reset_table(void) // 게임판 초기화
     {
         game_table[0][i] = WALL;
         game_table[GAME_Y - 1][i] = WALL;
+        block_color[0][i] = WHITE;
+        block_color[GAME_Y - 1][i] = WHITE;
     }
     for (i = 0; i < GAME_Y ; i++)
     {
         game_table[i][GAME_X - 1] = WALL;
         game_table[i][0] = WALL;
+        block_color[i][GAME_X - 1] = WHITE;
+        block_color[i][0] = WHITE;
     }
 }
 
@@ -73,6 +119,7 @@ void draw_table(void) // 게임판 출력
 {
     int i, j;
 
+    text_color(BACKGROUND,WHITE);
     for (j = 1; j < GAME_X - 1; j++)
     {
         if (game_table[GAME_Y - MAX_HEIGHT - 1][j] == EMPTY)
@@ -82,14 +129,14 @@ void draw_table(void) // 게임판 출력
         }
     }
 
-
     for (i = 0; i < GAME_Y; i++)
     {
         for (j = 0; j < GAME_X; j++)
         {
-            if (game_table[i][j] != game_table_copy[i][j]) // 다른 블럭만 변경해서 출력하기
+            if (game_table[i][j] != game_table_copy[i][j] || block_color[i][j] != block_color_copy[i][j]) // 다른 블럭만 변경해서 출력하기
             {
                 gotoxy(GAME_POS_X + j, GAME_POS_Y + i); // 해당 좌표로 이동
+                text_color(BACKGROUND,block_color[i][j]);
                 switch(game_table[i][j]) // 해당하는 블럭 출력
                 {
                 case EMPTY:
@@ -105,16 +152,16 @@ void draw_table(void) // 게임판 출력
                     printf("_");
                     break;
                 case WALL:
+                    text_color(BACKGROUND,WHITE);
                     printf("■");
                     break;
                 }
 
                 game_table_copy[i][j] = game_table[i][j]; // 다 출력하면 복사해줌
+                block_color_copy[i][j] = block_color[i][j];
             }
         }
     }
-
-
 }
 
 void new_block(void) // 다음  블럭 설정
@@ -129,6 +176,9 @@ void new_block(void) // 다음  블럭 설정
     b_pos_y = 1;
     b_rotation = 0;
 
+    random_color();
+    place_block();
+
     draw_next_block();
 
     loop = 0;
@@ -139,11 +189,13 @@ void draw_next_block(void) // 다음 블럭 출력
 {
     int i, j;
 
+    text_color(BACKGROUND,WHITE);
     gotoxy(NEXT_POS_X, NEXT_POS_Y + 2); printf("            ");
     gotoxy(NEXT_POS_X, NEXT_POS_Y + 3); printf("            ");
     gotoxy(NEXT_POS_X, NEXT_POS_Y + 4); printf("            ");
     gotoxy(NEXT_POS_X, NEXT_POS_Y + 5); printf("            ");
 
+    text_color(BACKGROUND,b_color_next);
     for (i = 0; i < 4; i++)
     {
         for (j = 0; j < 4; j++)
@@ -159,10 +211,12 @@ void draw_next_block(void) // 다음 블럭 출력
 
 void draw_ui(void) // 다음블럭, 점수판 등 출력
 {
-
+    text_color(BACKGROUND,WHITE);
     gotoxy(NEXT_POS_X + 1, NEXT_POS_Y); printf("NEXT");           // 다음 블럭
 
     gotoxy(SCORE_POS_X, SCORE_POS_Y); printf("SCORE :"); // 점수
+
+    draw_score();
 }
 
 void place_block(void) // 블럭을 게임판에 대입
@@ -176,6 +230,7 @@ void place_block(void) // 블럭을 게임판에 대입
             if (blocks[current_block][b_rotation][i][j] == 1)
             {
                 game_table[b_pos_y + i][b_pos_x + j] = BLOCK_ACT;
+                block_color[b_pos_y + i][b_pos_x + j] = b_color;
             }
         }
     }
@@ -204,14 +259,8 @@ void block_down(void) // 블럭 내려가게 만드는 함수
     erase_block();
 
     b_pos_y++; // 블럭의 충돌이 없을 경우
-    for (i = 0; i < 4; i++) // 블럭 이동 후 위치 출력
-    {
-        for (j = 0; j < 4; j++)
-        {
-            if(blocks[current_block][b_rotation][i][j] == 1)
-                game_table[i + b_pos_y][j + b_pos_x] = BLOCK_ACT;
-        }
-    }
+
+    place_block();
 }
 
 void block_stack(void) // 블럭을 쌓이게 해주는 함수
@@ -253,8 +302,8 @@ void draw_gameover(void) // 게임오버 화면 출력
     game_running = 0;
 
     system("cls");
-    gotoxy(11,9); printf("GAME OVER");
-    gotoxy(11,11); printf("SCORE: %d", score);
+    gotoxy(9,9); printf("GAME OVER");
+    gotoxy(9,11); printf("SCORE: %d", score);
 
     while(!kbhit())
         Sleep(33);
@@ -382,14 +431,20 @@ void check_key(void) // 키입력 받고 커맨드 수행
         switch (key)
         {
         case LEFT:
+            if (paused == 1 || game_running == 0)
+                break;
             if (check_crash(LEFT) == 0)
                 move_block(LEFT);
             break;
         case RIGHT:
+            if (paused == 1 || game_running == 0)
+                break;
             if (check_crash(RIGHT) == 0)
                 move_block(RIGHT);
             break;
         case DOWN:
+            if (paused == 1 || game_running == 0)
+                break;
             if (check_crash(DOWN) == 0)
                 move_block(DOWN);
             else
@@ -399,6 +454,8 @@ void check_key(void) // 키입력 받고 커맨드 수행
             }
             break;
         case ROTATION:
+            if (paused == 1 || game_running == 0)
+                break;
             if (check_crash(ROTATION) == 0)
                 rotate_block();
             break;
@@ -423,11 +480,14 @@ void check_key(void) // 키입력 받고 커맨드 수행
             {
                 unpause();
                 esc_paused = 0;
+                paused = 0;
             }
             break;
 
         case SPACE_BAR:
-            if (game_running == 0)
+            if (paused == 1)
+                break;
+            else if (game_running == 0)
                 game_running = 1;
             else
                 hard_drop();
@@ -481,6 +541,7 @@ void erase_block(void) // 대입한 블럭 제거
             if (blocks[current_block][b_rotation][i][j])
             {
                 game_table[i + b_pos_y][j + b_pos_x] = EMPTY;
+                block_color[i + b_pos_y][j + b_pos_x] = BACKGROUND;
             }
         }
     }
@@ -509,6 +570,7 @@ void check_line(void) // 라인 확인, 제거, 점수 획득
             for (j = 1; j < GAME_X - 1; j++) // 라인달성시 그 줄 제거
             {
                 game_table[i][j] = EMPTY;
+                block_color[i][j] = BACKGROUND;
                 draw_table();
             }
         }
@@ -525,11 +587,14 @@ void check_line(void) // 라인 확인, 제거, 점수 획득
 
 void draw_score(void) // 점수 출력
 {
+    text_color(BACKGROUND,WHITE);
     gotoxy(SCORE_POS_X + 4, SCORE_POS_Y); printf("%d", score);
+    text_color(BACKGROUND,b_color);
 }
 
 void draw_combo(int combo, int income) // 콤보 출력
 {
+    text_color(BACKGROUND,WHITE);
     gotoxy(COMBO_POS_X, COMBO_POS_Y); printf("%d COMBO!", combo);
     gotoxy(COMBO_POS_X, COMBO_POS_Y + 1); printf("+%d Points", income);
 
@@ -539,6 +604,7 @@ void draw_combo(int combo, int income) // 콤보 출력
 
     gotoxy(COMBO_POS_X, COMBO_POS_Y); printf("         ");
     gotoxy(COMBO_POS_X, COMBO_POS_Y + 1); printf("             ");
+    text_color(BACKGROUND,b_color);
 }
 
 void remove_blank(void) // 라인 제거 후 공백 제거
@@ -586,6 +652,7 @@ void drop_blocks(int line) // 비어있는 줄 윗 블럭들을 내려줌
         for (j = 0; j < GAME_X; j++)
         {
             game_table_copy[i][j] = game_table[i][j];
+            block_color_copy[i][j] = block_color[i][j];
         }
     }
 
@@ -594,6 +661,7 @@ void drop_blocks(int line) // 비어있는 줄 윗 블럭들을 내려줌
         for (j = 0; j < GAME_X; j++)
         {
             game_table[i][j] = game_table_copy[i - 1][j];
+            block_color[i][j] = block_color_copy[i - 1][j];
         }
     }
 
@@ -605,17 +673,19 @@ void pause_game(void)
     floop = 1;
     paused = 1;
 
-    gotoxy(7,6);  printf("******************");
-    gotoxy(7,7);  printf("*     PAUSED     *");
-    gotoxy(7,8);  printf("******************");
-    gotoxy(7,9);  printf("* MOVE: A,D      *");
-    gotoxy(7,10); printf("* SOFT DROP: S   *");
-    gotoxy(7,11); printf("* HARD DROP: SPC *");
-    gotoxy(7,12); printf("* QUIT: ESC      *");
-    gotoxy(7,13); printf("* ROTATE: W      *");
-    gotoxy(7,14); printf("* PAUSE: P       *");
-    gotoxy(7,15); printf("* MADE BY COSYAN *");
-    gotoxy(7,16); printf("******************");
+    text_color(GRAY,WHITE);
+    gotoxy(7,6);  printf("                  ");
+    gotoxy(7,7);  printf("    | PAUSED |    ");
+    gotoxy(7,8);  printf("                  ");
+    gotoxy(7,9);  printf("  MOVE: A,D       ");
+    gotoxy(7,10); printf("  SOFT DROP: S    ");
+    gotoxy(7,11); printf("  HARD DROP: SPC  ");
+    gotoxy(7,12); printf("  QUIT: ESC       ");
+    gotoxy(7,13); printf("  ROTATE: W       ");
+    gotoxy(7,14); printf("  PAUSE: P        ");
+    gotoxy(7,15); printf("                  ");
+    gotoxy(7,16); printf("  MADE BY COSYAN  ");
+    gotoxy(7,17); printf("                  ");
 
     while (floop)
     {
@@ -629,9 +699,10 @@ void escape_game(void)
     floop = 1;
     esc_paused = 1;
 
-    gotoxy(8,10); printf("***************");
-    gotoxy(8,11); printf("* EXIT? (y/n) *");
-    gotoxy(8,12); printf("***************");
+    text_color(BRIGHT_WHITE,BLACK);
+    gotoxy(8,10); printf("               ");
+    gotoxy(8,11); printf("  QUIT? (y/n)  ");
+    gotoxy(8,12); printf("               ");
 
     while(floop)
     {
@@ -656,6 +727,7 @@ void unpause(void)
 {
     int i, j;
 
+    text_color(BACKGROUND,WHITE);
     system("cls");
 
     if (game_running == 1)
@@ -669,10 +741,46 @@ void unpause(void)
         }
         draw_ui();
         draw_next_block();
-        draw_score();
     }
     else
         draw_title();
 
     floop = 0;
 }
+
+void text_color(unsigned short bg, unsigned short fg)
+{
+    SetConsoleTextAttribute( GetStdHandle( STD_OUTPUT_HANDLE ), (bg << 4) | fg);
+}
+
+void random_color(void)
+{
+    unsigned short r;
+
+    b_color = b_color_next;
+
+    r = rand() % 5;
+
+    switch(r)
+    {
+    case 0:
+        b_color_next = RED;
+        break;
+    case 1:
+        b_color_next = ORANGE;
+        break;
+    case 2:
+        b_color_next = GREEN;
+        break;
+    case 3:
+        b_color_next = BLUE;
+        break;
+    case 4:
+        b_color_next = PURPLE;
+        break;
+    }
+
+
+}
+
+

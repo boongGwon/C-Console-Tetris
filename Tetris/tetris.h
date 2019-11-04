@@ -30,9 +30,22 @@
 #define LINE 3
 #define WALL 4
 
-extern game_table[GAME_Y][GAME_X];
+#define BLACK 0
+#define RED 4
+#define GREEN 2
+#define BLUE 1
+#define WHITE 7
+#define CYAN 11
+#define PURPLE 5
+#define ORANGE 6
+#define BACKGROUND 0
+#define GRAY 8
+#define BRIGHT_WHITE 15
+
+extern game_table[GAME_Y][GAME_X]; // »ö, X, Y
 extern game_table_copy[GAME_Y][GAME_X];
 extern blocks[7][4][4][4];
+extern color_table[5];
 extern new_block_flag;
 extern current_block;
 extern next_block;
@@ -49,6 +62,7 @@ extern paused;
 extern esc_paused;
 extern floop;
 extern gameover_flag;
+extern new_color_flag;
 
 void gotoxy(int, int);
 void init(void);
@@ -76,3 +90,5 @@ void pause_game(void);
 void escape_game(void);
 void hard_drop(void);
 void draw_title(void);
+void text_color(unsigned short, unsigned short);
+void random_color(void);
