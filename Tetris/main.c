@@ -35,7 +35,6 @@ int game_running; // 게임 시작했는지
 int b_pos_x; // 블럭의 X,Y 좌표 및 회전 상태
 int b_pos_y;
 int b_rotation;
-int game_speed = 12;
 int loop = 0;
 int key;
 int score = 0;
@@ -45,6 +44,7 @@ int paused = 0;
 int floop = 0;
 int gameover_flag = 0;
 int new_color_flag = 0;
+int game_speed;
 
 int main(void)
 {
@@ -61,6 +61,10 @@ int main(void)
             draw_next_block();
             reset_table();
             score = 0;
+            total_lines = 0;
+            game_level = 1;
+            line_need = 4 + game_level;
+            game_speed = 12;
             random_color();
             random_color();
         }
@@ -78,6 +82,7 @@ int main(void)
             }
             Sleep(33);
             check_line();
+            check_level();
             new_block();
             check_gameover();
         }

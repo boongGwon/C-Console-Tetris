@@ -4,6 +4,9 @@ unsigned short b_color;
 unsigned short b_color_next = RED;
 unsigned short block_color[GAME_Y][GAME_X];
 unsigned short block_color_copy[GAME_Y][GAME_X];
+int total_lines;
+int game_level;
+int line_need;
 
 void init(void) // 초기화
 {
@@ -63,14 +66,14 @@ void draw_title(void)
     gotoxy(13,6); printf("▣  ▣");
     gotoxy(13,7); printf("▣  ▣");
 
-    text_color(BLACK,PURPLE);
+    text_color(BLACK,DARK_BLUE);
     gotoxy(17,3); printf("▣"); // I
     gotoxy(17,4); printf("▣");
     gotoxy(17,5); printf("▣");
     gotoxy(17,6); printf("▣");
     gotoxy(17,7); printf("▣");
 
-    text_color(BLACK,RED);
+    text_color(BLACK,PURPLE);
     gotoxy(19,3); printf("▣▣▣"); // S
     gotoxy(19,4); printf("▣");
     gotoxy(19,5); printf("▣▣▣");
@@ -190,10 +193,10 @@ void draw_next_block(void) // 다음 블럭 출력
     int i, j;
 
     text_color(BACKGROUND,WHITE);
-    gotoxy(NEXT_POS_X, NEXT_POS_Y + 2); printf("            ");
-    gotoxy(NEXT_POS_X, NEXT_POS_Y + 3); printf("            ");
-    gotoxy(NEXT_POS_X, NEXT_POS_Y + 4); printf("            ");
-    gotoxy(NEXT_POS_X, NEXT_POS_Y + 5); printf("            ");
+    gotoxy(UI_POS_X, UI_POS_Y + 2); printf("            ");
+    gotoxy(UI_POS_X, UI_POS_Y + 3); printf("            ");
+    gotoxy(UI_POS_X, UI_POS_Y + 4); printf("            ");
+    gotoxy(UI_POS_X, UI_POS_Y + 5); printf("            ");
 
     text_color(BACKGROUND,b_color_next);
     for (i = 0; i < 4; i++)
@@ -202,7 +205,7 @@ void draw_next_block(void) // 다음 블럭 출력
         {
             if (blocks[next_block][0][i][j] == BLOCK_ACT)
             {
-                gotoxy(NEXT_POS_X + j, NEXT_POS_Y + 2 + i);
+                gotoxy(UI_POS_X + j, UI_POS_Y + 2 + i);
                 printf("□");
             }
         }
@@ -212,11 +215,13 @@ void draw_next_block(void) // 다음 블럭 출력
 void draw_ui(void) // 다음블럭, 점수판 등 출력
 {
     text_color(BACKGROUND,WHITE);
-    gotoxy(NEXT_POS_X + 1, NEXT_POS_Y); printf("NEXT");           // 다음 블럭
+    gotoxy(UI_POS_X + 1, UI_POS_Y); printf("NEXT");           // 다음 블럭
 
-    gotoxy(SCORE_POS_X, SCORE_POS_Y); printf("SCORE :"); // 점수
+    gotoxy(UI_POS_X, UI_POS_Y + 9); printf("SCORE : %-6d", score); // 점수
 
-    draw_score();
+    gotoxy(UI_POS_X, UI_POS_Y + 11); printf("LEVEL : %-3d", game_level); // 게임 레벨
+
+    gotoxy(UI_POS_X - 1, UI_POS_Y + 12); printf("NEXT LV.: %-2d", line_need);
 }
 
 void place_block(void) // 블럭을 게임판에 대입
@@ -302,8 +307,20 @@ void draw_gameover(void) // 게임오버 화면 출력
     game_running = 0;
 
     system("cls");
-    gotoxy(9,9); printf("GAME OVER");
-    gotoxy(9,11); printf("SCORE: %d", score);
+
+    text_color(GRAY,WHITE);
+    gotoxy(8,8);  printf("               ");
+    gotoxy(8,9);  printf(" | GAME OVER | ");
+    gotoxy(8,10); printf("               ");
+    gotoxy(8,11); printf(" SCORE: %-6d ", score);
+    gotoxy(8,12); printf(" LEVEL: %-6d ", game_level);
+    gotoxy(8,13); printf(" LINES: %-6d ", total_lines);
+    gotoxy(8,14); printf("               ");
+
+    Sleep(1000);
+
+    while(kbhit())
+        getch();
 
     while(!kbhit())
         Sleep(33);
@@ -567,6 +584,8 @@ void check_line(void) // 라인 확인, 제거, 점수 획득
         if (blocks == GAME_X - 2)
         {
             lines++;
+            total_lines++;
+            line_need--;
             for (j = 1; j < GAME_X - 1; j++) // 라인달성시 그 줄 제거
             {
                 game_table[i][j] = EMPTY;
@@ -585,26 +604,18 @@ void check_line(void) // 라인 확인, 제거, 점수 획득
     }
 }
 
-void draw_score(void) // 점수 출력
-{
-    text_color(BACKGROUND,WHITE);
-    gotoxy(SCORE_POS_X + 4, SCORE_POS_Y); printf("%d", score);
-    text_color(BACKGROUND,b_color);
-}
-
 void draw_combo(int combo, int income) // 콤보 출력
 {
     text_color(BACKGROUND,WHITE);
-    gotoxy(COMBO_POS_X, COMBO_POS_Y); printf("%d COMBO!", combo);
-    gotoxy(COMBO_POS_X, COMBO_POS_Y + 1); printf("+%d Points", income);
+    gotoxy(UI_POS_X, UI_POS_Y + 14); printf("%d COMBO!", combo);
+    gotoxy(UI_POS_X, UI_POS_Y +15); printf("+%d Points", income);
 
     Sleep(600); // 대기 후 메시지 제거
 
     remove_blank(); // 생긴 공백 제거
 
-    gotoxy(COMBO_POS_X, COMBO_POS_Y); printf("         ");
-    gotoxy(COMBO_POS_X, COMBO_POS_Y + 1); printf("             ");
-    text_color(BACKGROUND,b_color);
+    gotoxy(UI_POS_X, UI_POS_Y + 14); printf("         ");
+    gotoxy(UI_POS_X, UI_POS_Y +15); printf("             ");
 }
 
 void remove_blank(void) // 라인 제거 후 공백 제거
@@ -759,7 +770,7 @@ void random_color(void)
 
     b_color = b_color_next;
 
-    r = rand() % 5;
+    r = rand() % 7;
 
     switch(r)
     {
@@ -778,9 +789,45 @@ void random_color(void)
     case 4:
         b_color_next = PURPLE;
         break;
+    case 5:
+        b_color_next = DARK_BLUE;
+        break;
+    case 6:
+        b_color_next = YELLOW;
+        break;
     }
 
 
+}
+
+void check_level(void)
+{
+    if (line_need <= 0)
+    {
+        text_color(GRAY,WHITE);
+        gotoxy(GAME_POS_X + (GAME_X / 2) - 3, GAME_POS_Y + (GAME_Y - MAX_HEIGHT - 2) - 1);
+        printf("             ");
+        gotoxy(GAME_POS_X + (GAME_X / 2) - 3, GAME_POS_Y + (GAME_Y - MAX_HEIGHT - 2));
+        printf(" SPEED UP!!! ");
+        gotoxy(GAME_POS_X + (GAME_X / 2) - 3, GAME_POS_Y + (GAME_Y - MAX_HEIGHT - 2) + 1);
+        printf("             ");
+
+        Sleep(2000);
+        text_color(BACKGROUND,WHITE);
+        gotoxy(GAME_POS_X + (GAME_X / 2) - 3, GAME_POS_Y + (GAME_Y - MAX_HEIGHT - 2) - 1);
+        printf("             ");
+        gotoxy(GAME_POS_X + (GAME_X / 2) - 3, GAME_POS_Y + (GAME_Y - MAX_HEIGHT - 2));
+        printf("             ");
+        gotoxy(GAME_POS_X + (GAME_X / 2) - 3, GAME_POS_Y + (GAME_Y - MAX_HEIGHT - 2) + 1);
+        printf("             ");
+
+        game_level++;
+
+        if (game_speed > 0)
+            game_speed--;
+
+        line_need = 4 + game_level;
+    }
 }
 
 

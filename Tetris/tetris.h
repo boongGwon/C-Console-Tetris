@@ -16,6 +16,8 @@
 #define SCORE_POS_Y 14
 #define COMBO_POS_X 15
 #define COMBO_POS_Y 16
+#define UI_POS_X 14
+#define UI_POS_Y 3
 
 #define LEFT 97
 #define RIGHT 100
@@ -33,11 +35,13 @@
 #define BLACK 0
 #define RED 4
 #define GREEN 2
-#define BLUE 1
+#define DARK_BLUE 1
 #define WHITE 7
 #define CYAN 11
 #define PURPLE 5
 #define ORANGE 6
+#define YELLOW 14
+#define BLUE 9
 #define BACKGROUND 0
 #define GRAY 8
 #define BRIGHT_WHITE 15
@@ -63,6 +67,9 @@ extern esc_paused;
 extern floop;
 extern gameover_flag;
 extern new_color_flag;
+extern total_lines;
+extern game_level;
+extern line_need;
 
 void gotoxy(int, int);
 void init(void);
@@ -82,7 +89,6 @@ void check_key(void);
 void rotate_block(void);
 void erase_block(void);
 void check_line(void);
-void draw_score(void);
 void draw_combo(int, int);
 void remove_blank(void);
 void drop_blocks(int);
@@ -92,3 +98,5 @@ void hard_drop(void);
 void draw_title(void);
 void text_color(unsigned short, unsigned short);
 void random_color(void);
+void check_level(void);
+
